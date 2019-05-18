@@ -25,7 +25,7 @@ import { theme, fonts } from './Css';
 // TODO: license headers
 
 cssRule('html, body, #root', {
-  background: 'white',
+  background: '#f2f2f6',
   color: 'rgba(0, 0, 0, .66)',
   display: 'flex',
   fontFamily: fonts.main,

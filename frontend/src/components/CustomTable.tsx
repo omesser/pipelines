@@ -85,7 +85,7 @@ export const css = stylesheet({
   },
   columnName: {
     color: '#1F1F1F',
-    fontSize: fontsize.small,
+    fontSize: fontsize.base,
     fontWeight: 'bold',
     letterSpacing: 0.25,
     marginRight: 20,
@@ -103,6 +103,12 @@ export const css = stylesheet({
     transform: 'rotate(90deg)',
   },
   expandableContainer: {
+    '$nest': {
+      '&:not(:first-child)': {
+        borderTop: '0 none transparent',
+      },
+    },
+    border: '1px solid #e1e0e5',
     transition: 'margin 0.2s',
   },
   expandedContainer: {
@@ -128,7 +134,8 @@ export const css = stylesheet({
     textAlign: 'right',
   },
   header: {
-    borderBottom: 'solid 1px ' + color.divider,
+    border: 'solid 1px ' + color.divider,
+    borderBottom: '0 none transparent',
     color: color.strong,
     display: 'flex',
     flex: '0 0 40px',
@@ -150,10 +157,11 @@ export const css = stylesheet({
   row: {
     $nest: {
       '&:hover': {
-        backgroundColor: '#f3f3f3',
+        backgroundColor: '#f3f3f6',
       },
     },
-    borderBottom: '1px solid #ddd',
+    // border: '1px solid #e1e0e5',
+    border: '0 none transparent',
     display: 'flex',
     flexShrink: 0,
     height: rowHeight,
