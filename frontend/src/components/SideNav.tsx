@@ -17,9 +17,9 @@
 import * as React from 'react';
 import ArchiveIcon from '@material-ui/icons/Archive';
 import Button from '@material-ui/core/Button';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+// import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ExperimentsIcon from '../icons/experiments';
-import IconButton from '@material-ui/core/IconButton';
+// import IconButton from '@material-ui/core/IconButton';
 import JupyterhubIcon from '@material-ui/icons/Code';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import PipelinesIcon from '../icons/pipelines';
@@ -34,8 +34,8 @@ import { fontsize, commonCss } from '../Css';
 import { logger } from '../lib/Utils';
 
 export const sideNavColors = {
-  bg: '#f8fafb',
-  fgActive: '#0d6de7',
+  bg: '#ffffff',
+  fgActive: '#28afe4',
   fgActiveInvisible: 'rgb(227, 233, 237, 0)',
   fgDefault: '#9aa0a6',
   hover: '#f1f3f4',
@@ -176,7 +176,7 @@ export default class SideNav extends React.Component<SideNavProps, SideNavState>
   constructor(props: any) {
     super(props);
 
-    const collapsed = LocalStorage.isNavbarCollapsed();
+    const collapsed = true;
 
     this.state = {
       collapsed,
@@ -279,11 +279,11 @@ export default class SideNav extends React.Component<SideNavProps, SideNavState>
               </Button>
             </Link>
           </Tooltip>
-          <hr className={classes(css.separator, collapsed && css.collapsedSeparator)} />
-          <IconButton className={classes(css.chevron, collapsed && css.collapsedChevron)}
-            onClick={this._toggleNavClicked.bind(this)}>
-            <ChevronLeftIcon />
-          </IconButton>
+          {/*<hr className={classes(css.separator, collapsed && css.collapsedSeparator)} />*/}
+          {/*<IconButton className={classes(css.chevron, collapsed && css.collapsedChevron)}*/}
+            {/*onClick={this._toggleNavClicked.bind(this)}>*/}
+            {/*<ChevronLeftIcon />*/}
+          {/*</IconButton>*/}
         </div>
         <div className={collapsed ? css.infoHidden : css.infoVisible}>
           {displayBuildInfo && (
@@ -311,13 +311,13 @@ export default class SideNav extends React.Component<SideNavProps, SideNavState>
       || page.startsWith(RoutePage.COMPARE);
   }
 
-  private _toggleNavClicked(): void {
-    this.setStateSafe({
-      collapsed: !this.state.collapsed,
-      manualCollapseState: true,
-    }, () => LocalStorage.saveNavbarCollapsed(this.state.collapsed));
-    this._toggleNavCollapsed();
-  }
+  // private _toggleNavClicked(): void {
+  //   this.setStateSafe({
+  //     collapsed: !this.state.collapsed,
+  //     manualCollapseState: true,
+  //   }, () => LocalStorage.saveNavbarCollapsed(this.state.collapsed));
+  //   this._toggleNavCollapsed();
+  // }
 
   private _toggleNavCollapsed(shouldCollapse?: boolean): void {
     this.setStateSafe({

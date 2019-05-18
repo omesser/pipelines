@@ -39,8 +39,8 @@ export const color = {
   success: '#34a853',
   successWeak: '#e6f4ea', // Google green 50
   terminated: '#80868b',
-  theme: '#1a73e8',
-  themeDarker: '#0b59dc',
+  theme: '#28afe4',
+  themeDarker: '#239bca',
   warningBg: '#f9f9e1',
   warningText: '#ee8100',
   weak: '#9aa0a6',
@@ -83,7 +83,7 @@ export const spacing = {
 
 export const fonts = {
   code: '"Source Code Pro", monospace',
-  main: '"Google Sans", "Helvetica Neue", sans-serif',
+  main: '"Roboto", "Helvetica Neue", sans-serif',
   secondary: '"Roboto", "Helvetica Neue", sans-serif',
 };
 
@@ -247,7 +247,7 @@ export const commonCss = stylesheet({
     $nest: {
       '&:hover': {
         color: color.theme,
-        textDecoration: 'underline',
+        textDecoration: 'none',
       },
     },
     color: color.strong,
