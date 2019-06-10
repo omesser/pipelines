@@ -40,11 +40,10 @@ const {
   MINIO_HOST = 'minio-service',
   MINIO_NAMESPACE = 'kubeflow',
   MINIO_SSL = 'false',
+  MINIO_V3IO = 'false',
   /** minio client use these to retrieve s3 objects/artifacts */
   AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY,
-  /** http/https base URL **/
-  HTTP_BASE_URL = '',
   /** http/https fetch with this authorization header key (for example: 'Authorization') */
   HTTP_AUTHORIZATION_KEY = '',
   /** http/https fetch with this authorization header value by default when absent in client request at above key */
@@ -192,25 +191,31 @@ const artifactsHandler = async (req, res) => {
       }
       break;
     case 'minio':
-      minioClient.getObject(bucket, key, (err, stream) => {
-        if (err) {
-          res.status(500).send(`Failed to get object in bucket ${bucket} at path ${key}: ${err}`);
-          return;
-        }
+      if (_as_bool(MINIO_V3IO)) {
+          const protocol = _as_bool(MINIO_SSL) ? 'https' : 'http';
+          console.log('MINIO_V3IO is true, redirecting to ', protocol.toUpperCase());
+          httpHandler(protocol, MINIO_PORT, MINIO_ENDPOINT);
+      } else {
+          minioClient.getObject(bucket, key, (err, stream) => {
+              if (err) {
+                  res.status(500).send(`Failed to get object in bucket ${bucket} at path ${key}: ${err}`);
+                  return;
+              }
 
-        try {
-          let contents = '';
-          stream.pipe(new tar.Parse()).on('entry', (entry: Stream) => {
-            entry.on('data', (buffer) => contents += buffer.toString());
-          });
+              try {
+                  let contents = '';
+                  stream.pipe(new tar.Parse()).on('entry', (entry: Stream) => {
+                      entry.on('data', (buffer) => contents += buffer.toString());
+                  });
 
-          stream.on('end', () => {
-            res.send(contents);
+                  stream.on('end', () => {
+                      res.send(contents);
+                  });
+              } catch (err) {
+                  res.status(500).send(`Failed to get object in bucket ${bucket} at path ${key}: ${err}`);
+              }
           });
-        } catch (err) {
-          res.status(500).send(`Failed to get object in bucket ${bucket} at path ${key}: ${err}`);
-        }
-      });
+      }
       break;
     case 's3':
       s3Client.getObject(bucket, key, (err, stream) => {
@@ -235,23 +240,32 @@ const artifactsHandler = async (req, res) => {
       break;
     case 'http':
     case 'https':
-      // trim `/` from both ends of the base URL, then append with a single `/` to the end (empty string remains empty)
-      const baseUrl = HTTP_BASE_URL.replace(/^\/*(.+?)\/*$/, '$1/');
-      const headers = {};
-
-      // add authorization header to fetch request if key is non-empty
-      if (HTTP_AUTHORIZATION_KEY.length > 0) {
-        // inject original request's value if exists, otherwise default to provided default value
-        headers[HTTP_AUTHORIZATION_KEY] = req.headers[HTTP_AUTHORIZATION_KEY] || HTTP_AUTHORIZATION_DEFAULT_VALUE;
-      }
-      const response = await fetch(`${source}://${baseUrl}${bucket}/${key}`, { headers: headers });
-      const content = await response.buffer();
-      res.send(content);
+      httpHandler(source);
       break;
 
     default:
       res.status(500).send('Unknown storage source: ' + source);
       return;
+  }
+
+  async function httpHandler(protocol, portNumber = '', base = '') {
+    const headers = {};
+    const port = portNumber ? ':' + portNumber : '';
+
+    // trim `/` from both ends of the base URL, then append a single `/` to the end (empty string remains empty)
+    // and add port if relevant
+    const baseUrl = base.replace(/^\/*(.+?)\/*$/, `$1${port}/`);
+
+    // add authorization header to fetch request if key is non-empty
+    if (HTTP_AUTHORIZATION_KEY.length > 0) {
+      // inject original request's value if exists, otherwise default to provided default value
+      headers[HTTP_AUTHORIZATION_KEY] = req.headers[HTTP_AUTHORIZATION_KEY] || HTTP_AUTHORIZATION_DEFAULT_VALUE;
+    }
+    const absUrl = `${protocol}://${baseUrl}${bucket}/${key}`;
+    console.log('About to fetch: ', absUrl, ' with headers: ', JSON.stringify(headers));
+    const response = await fetch(absUrl, { headers: headers });
+    const content = await response.json();
+    res.send(content);
   }
 };
 
