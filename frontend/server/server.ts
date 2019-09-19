@@ -267,11 +267,11 @@ const artifactsHandler = async (req, res) => {
 
     try {
       await fetch(absUrl, { headers: headers })
-        .then(res => {
-          res.body.pipe(new tar.Parse()).on('entry', (entry: Stream) => {
+        .then(response => {
+          response.body.pipe(new tar.Parse()).on('entry', (entry: Stream) => {
             entry.on('data', (buffer) => contents += buffer.toString());
           });
-          res.body.on('end', () => {
+          response.body.on('end', () => {
             console.log('Successfully fetched: ', absUrl);
           })
         });
