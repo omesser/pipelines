@@ -250,6 +250,7 @@ const artifactsHandler = async (req, res) => {
 
   async function httpHandler(protocol, portNumber = '', base = '') {
     const headers = {};
+    let contents = '';
     const port = portNumber ? ':' + portNumber : '';
 
     // trim `/` from both ends of the base URL, then append a single `/` to the end (empty string remains empty)
@@ -263,9 +264,22 @@ const artifactsHandler = async (req, res) => {
     }
     const absUrl = `${protocol}://${baseUrl}${bucket}/${key}`;
     console.log('About to fetch: ', absUrl, ' with headers: ', JSON.stringify(headers));
-    const response = await fetch(absUrl, { headers: headers });
-    const content = await response.json();
-    res.send(content);
+
+    try {
+      await fetch(absUrl, { headers: headers })
+        .then(res => {
+          res.body.pipe(new tar.Parse()).on('entry', (entry: Stream) => {
+            entry.on('data', (buffer) => contents += buffer.toString());
+          });
+          res.body.on('end', () => {
+            console.log('Successfully fetched: ', absUrl);
+          })
+        });
+    } catch (err) {
+      res.status(500).send(`Failed to fetch object from http ${bucket} at path ${key}: ${err}`);
+    }
+
+    res.send(contents);
   }
 };
 
