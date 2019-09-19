@@ -266,20 +266,19 @@ const artifactsHandler = async (req, res) => {
     console.log('About to fetch: ', absUrl, ' with headers: ', JSON.stringify(headers));
 
     try {
-      await fetch(absUrl, { headers: headers })
+      fetch(absUrl, { headers: headers })
         .then(response => {
           response.body.pipe(new tar.Parse()).on('entry', (entry: Stream) => {
             entry.on('data', (buffer) => contents += buffer.toString());
           });
           response.body.on('end', () => {
             console.log('Successfully fetched: ', absUrl);
-          })
+            res.send(contents);
+          });
         });
     } catch (err) {
       res.status(500).send(`Failed to fetch object from http ${bucket} at path ${key}: ${err}`);
     }
-
-    res.send(contents);
   }
 };
 
