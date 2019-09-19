@@ -251,6 +251,7 @@ const artifactsHandler = async (req, res) => {
   async function httpHandler(protocol, portNumber = '', base = '') {
     const headers = {};
     let contents = '';
+    let compressedExtensions = ["tgz", "gz", "tar", "zip"];
     const port = portNumber ? ':' + portNumber : '';
 
     // trim `/` from both ends of the base URL, then append a single `/` to the end (empty string remains empty)
@@ -266,16 +267,26 @@ const artifactsHandler = async (req, res) => {
     console.log('About to fetch: ', absUrl, ' with headers: ', JSON.stringify(headers));
 
     try {
-      fetch(absUrl, { headers: headers })
-        .then(response => {
-          response.body.pipe(new tar.Parse()).on('entry', (entry: Stream) => {
-            entry.on('data', (buffer) => contents += buffer.toString());
+        // handle compressed files using pipe to tar.Parse()
+        if (compressedExtensions.indexOf(key.split('.').pop()) > -1) {
+          fetch(absUrl, { headers: headers })
+            .then(response => {
+            response.body.pipe(new tar.Parse()).on('entry', (entry: Stream) => {
+              entry.on('data', (buffer) => contents += buffer.toString());
+            });
+            response.body.on('end', () => {
+              console.log('Successfully fetched compressed HTTP contents [', contents.length, '] from: ', absUrl);
+              res.send(contents);
+            });
+
+          // handle non compressed files as simple stream
           });
-          response.body.on('end', () => {
-            console.log('Successfully fetched: ', absUrl);
-            res.send(contents);
-          });
-        });
+        } else {
+          const response = await fetch(absUrl, { headers: headers });
+          contents = await response.text();
+          console.log('Successfully fetched HTTP response [', contents.length, '] from: ', absUrl);
+          res.send(contents);
+        }
     } catch (err) {
       res.status(500).send(`Failed to fetch object from http ${bucket} at path ${key}: ${err}`);
     }
