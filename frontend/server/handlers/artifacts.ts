@@ -67,18 +67,15 @@ export function getArtifactsHandler(artifactsConfigs: {
       case 'minio':
         if (minio.useV3IO) {
           const protocol = minio.useSSL ? 'https' : 'http';
-          const baseUrl = minio.endPoint + ':' + minio.port
+          const baseUrl = minio.endPoint + ':' + minio.port;
           console.log('Using V3IO minio, redirecting to ', protocol.toUpperCase());
-          getHttpArtifactsHandler(getHttpUrl(protocol, baseUrl, bucket, key), http.auth)(
-            req,
-            res,
-          );
+          getHttpArtifactsHandler(getHttpUrl(protocol, baseUrl, bucket, key), http.auth)(req, res);
         } else {
           getMinioArtifactHandler({
             bucket,
             client: new MinioClient(minio),
             key,
-          })(req, res);  
+          })(req, res);
         }
         break;
 
