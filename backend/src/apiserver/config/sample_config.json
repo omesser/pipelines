@@ -1,15 +1,5 @@
 [
   {
-    "name": "[Sample] ML - XGBoost - Training with Confusion Matrix",
-    "description": "[GCP Permission requirements](https://github.com/kubeflow/pipelines/tree/1b04983d96d097a12245a2d79469d3c51af5c7f4/samples/core/xgboost_training_cm#requirements). A trainer that does end-to-end distributed training for XGBoost models. [source code](https://github.com/kubeflow/pipelines/tree/1b04983d96d097a12245a2d79469d3c51af5c7f4/samples/core/xgboost_training_cm)",
-    "file": "/samples/core/xgboost_training_cm/xgboost_training_cm.py.yaml"
-  },
-  {
-    "name": "[Sample] Unified DSL - Taxi Tip Prediction Model Trainer",
-    "description": "[GCP Permission requirements](https://github.com/kubeflow/pipelines/blob/1b04983d96d097a12245a2d79469d3c51af5c7f4/samples/contrib/parameterized_tfx_oss#permission). Example pipeline that does classification with model analysis based on a public tax cab BigQuery dataset. [source code](https://github.com/kubeflow/pipelines/tree/1b04983d96d097a12245a2d79469d3c51af5c7f4/samples/contrib/parameterized_tfx_oss)",
-    "file": "/samples/core/parameterized_tfx_oss/parameterized_tfx_oss.py.yaml"
-  },
-  {
     "name": "[Sample] Basic - Sequential execution",
     "description": "A pipeline with two sequential steps. [source code](https://github.com/kubeflow/pipelines/blob/1b04983d96d097a12245a2d79469d3c51af5c7f4/samples/core/sequential/sequential.py)",
     "file": "/samples/core/sequential/sequential.py.yaml"
