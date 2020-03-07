@@ -323,10 +323,19 @@ export class Apis {
 
     if (response.ok) {
 
-      // handle known compressed extentions
+      // handle known compressed extensions
       if (compressedExtensions.indexOf(path.split('.').pop()!) > -1) {
+        Utils.logger.verbose(
+            `Path: ${path} is a compressed file. Decompressing`,
+        );
         const responseBuffer = await response.arrayBuffer();
-        responseText = gzip.unzip(Buffer.from(responseBuffer)).toString();
+        let responseUint8array = gzip.unzip(Buffer.from(responseBuffer));
+        responseText = new TextDecoder("utf-8").decode(Buffer.from(responseUint8array));
+
+        // cleanup and extract contents only
+        let startIndex = responseText.indexOf("{");
+        let endIndex = responseText.lastIndexOf("}");
+        responseText = responseText.substring(startIndex, endIndex + 1);
       } else {
         responseText = await response.text();
       }
