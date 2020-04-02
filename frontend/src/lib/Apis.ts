@@ -23,8 +23,6 @@ import { PlotType } from '../components/viewers/Viewer';
 import * as Utils from './Utils';
 import { StoragePath } from './WorkflowParser';
 
-import * as gzip from 'gzip-js';
-
 const v1beta1Prefix = 'apis/v1beta1';
 
 export interface ListRequest {
@@ -313,39 +311,17 @@ export class Apis {
     query?: string,
     init?: RequestInit,
   ): Promise<string> {
-    const compressedExtensions = ["tgz", "gz", "tar", "zip"];
-    let responseText = "uninitialized";
-
     init = Object.assign(init || {}, { credentials: 'same-origin' });
-
-    // make the
     const response = await fetch((apisPrefix || '') + path + (query ? '?' + query : ''), init);
-
+    const responseText = await response.text();
     if (response.ok) {
-
-      // handle known compressed extensions
-      if (compressedExtensions.indexOf(path.split('.').pop()!) > -1) {
-        Utils.logger.verbose(
-            `Path: ${path} is a compressed file. Decompressing`,
-        );
-        const responseBuffer = await response.arrayBuffer();
-        let responseUint8array = gzip.unzip(Buffer.from(responseBuffer));
-        responseText = new TextDecoder("utf-8").decode(Buffer.from(responseUint8array));
-
-        // cleanup and extract contents only
-        let startIndex = responseText.indexOf("{");
-        let endIndex = responseText.lastIndexOf("}");
-        responseText = responseText.substring(startIndex, endIndex + 1);
-      } else {
-        responseText = await response.text();
-      }
+      return responseText;
     } else {
       Utils.logger.error(
         `Response for path: ${path} was not 'ok'\n\nResponse was: ${responseText}`,
       );
       throw new Error(responseText);
     }
-    return responseText;
   }
 }
 
