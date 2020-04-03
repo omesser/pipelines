@@ -70,8 +70,7 @@ export function getArtifactsHandler(artifactsConfigs: {
           const baseUrl = minio.endPoint + ':' + minio.port;
           console.log(`Using V3IO minio, redirecting to ${protocol.toUpperCase()}`);
 
-          // do not use the personalized header when trying to get minio (metadata) artifacts,
-          // pop it from request headers
+          // forceDefaultAuth - do not use the personalized header when trying to get metadata artifacts
           getHttpArtifactsHandler(getHttpUrl(protocol, baseUrl, bucket, key), http.auth, true)(req, res);
         } else {
           getMinioArtifactHandler({
