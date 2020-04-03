@@ -68,8 +68,10 @@ export function getArtifactsHandler(artifactsConfigs: {
         if (minio.useV3IO) {
           const protocol = minio.useSSL ? 'https' : 'http';
           const baseUrl = minio.endPoint + ':' + minio.port;
-          console.log('Using V3IO minio, redirecting to ', protocol.toUpperCase());
-          getHttpArtifactsHandler(getHttpUrl(protocol, baseUrl, bucket, key), http.auth)(req, res);
+          console.log(`Using V3IO minio, redirecting to ${protocol.toUpperCase()}`);
+
+          // forceDefaultAuth - do not use the personalized header when trying to get metadata artifacts
+          getHttpArtifactsHandler(getHttpUrl(protocol, baseUrl, bucket, key), http.auth, true)(req, res);
         } else {
           getMinioArtifactHandler({
             bucket,
@@ -89,7 +91,8 @@ export function getArtifactsHandler(artifactsConfigs: {
 
       case 'http':
       case 'https':
-        getHttpArtifactsHandler(getHttpUrl(source, http.baseUrl || '', bucket, key), http.auth)(
+        console.log(`Getting artifact from webapi with: ${http.auth} path: ${key}`);
+        getHttpArtifactsHandler(getHttpUrl(source, http.baseUrl || '', bucket, key), http.auth, false)(
           req,
           res,
         );
@@ -121,15 +124,22 @@ function getHttpArtifactsHandler(
     key: string;
     defaultValue: string;
   } = { key: '', defaultValue: '' },
+  forceDefaultAuth: boolean,
 ) {
   return async (req: Request, res: Response) => {
     const headers = {};
 
     // add authorization header to fetch request if key is non-empty
     if (auth.key.length > 0) {
-      // inject original request's value if exists, otherwise default to provided default value
-      headers[auth.key] =
-        req.headers[auth.key] || req.headers[auth.key.toLowerCase()] || auth.defaultValue;
+      if (forceDefaultAuth) {
+
+        // force using default auth
+        headers[auth.key] = auth.defaultValue;
+      } else {
+
+        // inject original request's value if exists, otherwise default to provided default value
+        headers[auth.key] = req.headers[auth.key] || req.headers[auth.key.toLowerCase()] || auth.defaultValue;
+      }
     }
     const response = await fetch(url, { headers });
     const content = await response.buffer();

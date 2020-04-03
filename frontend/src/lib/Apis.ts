@@ -329,13 +329,22 @@ export class Apis {
             `Path: ${path} is a compressed file. Decompressing`,
         );
         const responseBuffer = await response.arrayBuffer();
-        let responseUint8array = gzip.unzip(Buffer.from(responseBuffer));
-        responseText = new TextDecoder("utf-8").decode(Buffer.from(responseUint8array));
+        try {
+          let responseUint8array = gzip.unzip(Buffer.from(responseBuffer));
+          responseText = new TextDecoder("utf-8").decode(Buffer.from(responseUint8array));
 
-        // cleanup and extract contents only
-        let startIndex = responseText.indexOf("{");
-        let endIndex = responseText.lastIndexOf("}");
-        responseText = responseText.substring(startIndex, endIndex + 1);
+          // cleanup and extract contents only
+          let startIndex = responseText.indexOf("{");
+          let endIndex = responseText.lastIndexOf("}");
+          responseText = responseText.substring(startIndex, endIndex + 1);
+        } catch (e) {
+          responseText = new TextDecoder("utf-8").decode(Buffer.from(responseBuffer));
+
+          // just log and return the response text
+          Utils.logger.error(
+              `Failed to decompress file: ${path}. \nError: ${e}\nContents: ${responseText}`,
+          );
+        }
       } else {
         responseText = await response.text();
       }
