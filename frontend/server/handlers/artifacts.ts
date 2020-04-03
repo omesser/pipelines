@@ -11,13 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { Handler, Request, Response } from 'express';
+import {Handler, Request, Response} from 'express';
 import fetch from 'node-fetch';
-import { Client as MinioClient } from 'minio';
-import { Storage } from '@google-cloud/storage';
+import {Client as MinioClient} from 'minio';
+import {Storage} from '@google-cloud/storage';
 
-import { getTarObjectAsString, getObjectStream, createMinioClient } from '../minio-helper';
-import { HttpConfigs, AWSConfigs, MinioConfigs } from '../configs';
+import {createMinioClient, getObjectStream, getTarObjectAsString} from '../minio-helper';
+import {AWSConfigs, HttpConfigs, MinioConfigs} from '../configs';
 
 /**
  * ArtifactsQueryStrings describes the expected query strings key value pairs
@@ -68,8 +68,12 @@ export function getArtifactsHandler(artifactsConfigs: {
         if (minio.useV3IO) {
           const protocol = minio.useSSL ? 'https' : 'http';
           const baseUrl = minio.endPoint + ':' + minio.port;
-          console.log('Using V3IO minio, redirecting to ', protocol.toUpperCase());
-          getHttpArtifactsHandler(getHttpUrl(protocol, baseUrl, bucket, key), http.auth)(req, res);
+          console.log(
+              `Using V3IO minio, redirecting to ${protocol.toUpperCase()}. Headers: ${JSON.stringify(req.headers)}`);
+
+          // do not use the personalized header when trying to get minio (metadata) artifacts,
+          // pop it from request headers
+          getHttpArtifactsHandler(getHttpUrl(protocol, baseUrl, bucket, key), http.auth, true)(req, res);
         } else {
           getMinioArtifactHandler({
             bucket,
@@ -89,7 +93,8 @@ export function getArtifactsHandler(artifactsConfigs: {
 
       case 'http':
       case 'https':
-        getHttpArtifactsHandler(getHttpUrl(source, http.baseUrl || '', bucket, key), http.auth)(
+        console.log(`Getting artifact from webapi with: ${http.auth} path: ${key}`);
+        getHttpArtifactsHandler(getHttpUrl(source, http.baseUrl || '', bucket, key), http.auth, false)(
           req,
           res,
         );
@@ -121,15 +126,22 @@ function getHttpArtifactsHandler(
     key: string;
     defaultValue: string;
   } = { key: '', defaultValue: '' },
+  forceDefaultAuth: boolean,
 ) {
   return async (req: Request, res: Response) => {
     const headers = {};
 
     // add authorization header to fetch request if key is non-empty
     if (auth.key.length > 0) {
-      // inject original request's value if exists, otherwise default to provided default value
-      headers[auth.key] =
-        req.headers[auth.key] || req.headers[auth.key.toLowerCase()] || auth.defaultValue;
+      if (forceDefaultAuth) {
+
+        // force using default auth
+        headers[auth.key] = auth.defaultValue;
+      } else {
+
+        // inject original request's value if exists, otherwise default to provided default value
+        headers[auth.key] = req.headers[auth.key] || req.headers[auth.key.toLowerCase()] || auth.defaultValue;
+      }
     }
     const response = await fetch(url, { headers });
     const content = await response.buffer();

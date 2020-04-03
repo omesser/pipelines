@@ -44,7 +44,6 @@ import { PlotType, ViewerConfig } from '../components/viewers/Viewer';
 import { Apis } from '../lib/Apis';
 import { errorToMessage, logger } from './Utils';
 import WorkflowParser, { StoragePath } from './WorkflowParser';
-const { unzipSync } = require( 'zlib' );
 
 export interface PlotMetadata {
   format?: 'csv';
@@ -66,28 +65,17 @@ export interface OutputMetadata {
 
 export class OutputArtifactLoader {
   public static async load(outputPath: StoragePath): Promise<ViewerConfig[]> {
-    const compressedExtensions = ["tgz", "gz", "tar", "zip"];
     let plotMetadataList: PlotMetadata[] = [];
-    let metadataFile;
-
     try {
-      metadataFile = await Apis.readFile(outputPath);
+      const metadataFile = await Apis.readFile(outputPath);
       if (metadataFile) {
-        if (compressedExtensions.indexOf(outputPath.key.split('.').pop()!) > -1) {
-          try {
-            metadataFile = unzipSync(metadataFile).toString("utf-8");
-          } catch (e) {
-            logger.error(`Could not unzip metadata file at: ${outputPath.key}. Error: ${e}. Contents: ${metadataFile}`);
-            return [];
-          }
-        }
         try {
           plotMetadataList = (JSON.parse(metadataFile) as OutputMetadata).outputs;
           if (plotMetadataList === undefined) {
             throw new Error('"outputs" field required by not found on metadata file');
           }
         } catch (e) {
-          logger.error(`Could not parse metadata file at: ${outputPath.key}. Error: ${e}. Contents: ${metadataFile}`);
+          logger.error(`Could not parse metadata file at: ${outputPath.key}. Error: ${e}`);
           return [];
         }
       }
@@ -597,13 +585,4 @@ async function getSourceContent(
     return source;
   }
   return await Apis.readFile(WorkflowParser.parseStoragePath(source));
-}
-
-function str2ab(str: string) {
-  let buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-  let bufView = new Uint16Array(buf);
-  for (let i=0, strLen=str.length; i < strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
-  }
-  return buf;
 }
