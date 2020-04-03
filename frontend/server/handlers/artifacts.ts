@@ -11,13 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import {Handler, Request, Response} from 'express';
+import { Handler, Request, Response } from 'express';
 import fetch from 'node-fetch';
-import {Client as MinioClient} from 'minio';
-import {Storage} from '@google-cloud/storage';
+import { Client as MinioClient } from 'minio';
+import { Storage } from '@google-cloud/storage';
 
-import {createMinioClient, getObjectStream, getTarObjectAsString} from '../minio-helper';
-import {AWSConfigs, HttpConfigs, MinioConfigs} from '../configs';
+import { getTarObjectAsString, getObjectStream, createMinioClient } from '../minio-helper';
+import { HttpConfigs, AWSConfigs, MinioConfigs } from '../configs';
 
 /**
  * ArtifactsQueryStrings describes the expected query strings key value pairs
