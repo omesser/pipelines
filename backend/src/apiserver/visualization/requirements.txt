@@ -10,4 +10,4 @@ pandas==0.24.2
 scikit_learn==0.21.2
 tensorflow-data-validation==0.13.1
 tensorflow-model-analysis==0.13.1
-tornado==6.0.2
+tornado==6.4.2
